@@ -54,7 +54,6 @@ sub inherited_types(@) {
       $hold = '';
     }
   }
-  #foreach (@lines1) { print ;}
   return @lines1;
 }
 
@@ -156,12 +155,6 @@ sub resolve_embedded(@) {
         $prev =~ s/##1//;
         $prev =~ s/##(\d)/sprintf("##%d", $1-1)/e;
         push @lines2, $prev;
-=pod=
-      $jumps = substr($prev_indent,2) - substr($indent,2);
-      for ($i=0;$i<$jumps;$i++) {
-        push @lines2, sprintf ("}\n");
-      }
-=cut
         if ($prev_indent eq '##1' or !$indent) {
           push @lines2, sprintf ("}\n");
         }
@@ -180,7 +173,6 @@ sub resolve_embedded(@) {
     $prev_object = $object if $object;
   }
   push @lines1, $prev;
-#foreach (@lines1, @lines2) { print;}
   return (@lines1, @lines2);
 }
 
