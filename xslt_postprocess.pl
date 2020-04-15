@@ -37,12 +37,37 @@ resolve_attrs(@lines);
 sub inherited_types(@) {
   my @lines = @_;
   my @lines1 = ();
+  my %types = ();
+
+  $def = "";
+  $type = "";
+  foreach (@lines) {
+    if (/^\s*type (\S+) /) {
+      $def =~ s/\}\s*$//;
+      $types{$type} = $def;
+      $def = $_;
+      $def =~ s/\s*type (\S+) //;
+      $type = $1;
+      $def =~ s/\s*struct \{//;
+    } else {
+      $l = $_;
+      $l =~ s/%Inherits: (string|xs:\S+|AUCodeSet\S+) ;/Value: string `xml:",chardata"`l/;
+      $l =~ s/%Inherits: (float|int|bool) ;/Value: $1 `xml:",chardata"`;/;
+      $def = $def . $l;
+    }
+  }
+  $types{$type} = $def;
+
+
   foreach (@lines) {
     if (/%Inherits: (string|xs:\S+|AUCodeSet\S+) ;/) {
-      s/%Inherits: \S+ ;/%Value: string `xml:",chardata"`/;
+      s/%Inherits: \S+ ;/%Value: string `xml:",chardata"`;/;
       $hold = $_;
-    } elsif (/%Inherits/) {
-      s/%Inherits: (\S+) ;/$1/;
+    } elsif (/%Inherits: (float|int|bool) ;/) {
+      s/%Inherits: (\S+) ;/%Value: $1 `xml:",chardata"`;/;
+      $hold = $_;
+    } elsif (/%Inherits: (\S+)/) {
+      s/%Inherits: (\S+) ;/%INHERITS $types{$1}/;
       push @lines1, $_;
     } else {
       s/^/%/ if ($hold and not /\}/);
@@ -111,7 +136,7 @@ sub indent_attrs(@) {
     $prev_object = $object if $object;
   }
   foreach (@lines1) { s/%//; }
-#foreach (@lines1) { print ;}
+  #foreach (@lines1) { print ;}
   return @lines1;
 }
 
